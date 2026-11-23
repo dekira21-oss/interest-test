@@ -245,10 +245,13 @@ footer{margin-top:24px;text-align:center;font-size:12px;color:var(--muted)}
     <div class="note" id="interpret"></div>
 
     <div class="row no-print" style="margin-top:18px">
-      <button class="btn" id="printBtn" type="button">결과지 인쇄 / PDF 저장</button>
+      <button class="btn" id="pdfBtn" type="button">결과 PDF 저장</button>
+      <button class="btn ghost" id="saveBtn" type="button">이미지(PNG) 저장</button>
+      <button class="btn ghost" id="printBtn" type="button">인쇄 / PDF</button>
       <button class="btn ghost" id="editBtn" type="button">답 수정하기</button>
       <button class="btn ghost" id="retryBtn" type="button">처음부터 다시</button>
     </div>
+    <p class="small no-print" id="saveMsg" aria-live="polite" style="margin:8px 0 0"></p>
   </section>
 
   <footer>홀랜드 직업흥미이론(RIASEC)을 바탕으로 한 간편검사입니다. 결과는 참고용이며 정식 직업선호도검사를 대신하지 않습니다.</footer>
@@ -421,7 +424,7 @@ function hexSVG(sc){
   let g = "";
   [10,20,30].forEach(l => {
     g += `<polygon points="${poly(R*l/MAX)}" fill="${l===30?'var(--soft-2)':'none'}" stroke="var(--line)" stroke-width="${l===30?2:1.2}"/>`;
-    g += `<text x="${cx+4}" y="${cy - R*l/MAX + 12}" font-size="10" fill="var(--muted)">${l}</text>`;
+    g += `<text x="${(cx + R*l/MAX*0.5 + 4).toFixed(1)}" y="${(cy - R*l/MAX*0.866 + 2).toFixed(1)}" font-size="10" fill="var(--muted)">${l}</text>`;
   });
   ORDER.forEach((_,i)=>{ const [x,y]=pt(i,R); g += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`; });
   // 축 의미
@@ -521,6 +524,185 @@ function renderResult(){
   $("interpret").innerHTML = msg;
 }
 $("printBtn").onclick = () => window.print();
+/* ───────── 결과 이미지 저장 ───────── */
+const IMG = { bg:"#eef6f0", card:"#ffffff", ink:"#1b2b22", muted:"#5b6f63", line:"#d3e5d9", soft:"#e2f3e8", brand:"#1f8a4c", brandD:"#156b3a",
+  R:"#2f7fd0", I:"#4c9a2a", A:"#e0a019", S:"#d4473b", E:"#7b4bb0", C:"#2b9aa0" };
+const FONT = (w,s) => `${w} ${s}px "Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif`;
+let PAINT = true;
+function rr(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function lines(ctx,text,maxW){
+  const out=[]; let cur="";
+  for(const word of String(text).split(" ")){
+    const t = cur ? cur+" "+word : word;
+    if(ctx.measureText(t).width <= maxW){ cur=t; continue; }
+    if(cur) out.push(cur);
+    cur="";
+    for(const ch of word){ if(ctx.measureText(cur+ch).width > maxW && cur){ out.push(cur); cur=ch; } else cur+=ch; }
+  }
+  if(cur) out.push(cur);
+  return out;
+}
+function text(ctx,t,x,y,maxW,lh,font,color){
+  ctx.font=font; ctx.fillStyle=color; ctx.textBaseline="top";
+  for(const l of lines(ctx,t,maxW)){ if(PAINT) ctx.fillText(l,x,y); y+=lh; }
+  return y;
+}
+function pills(ctx,arr,x,y,maxW,bg,fg,bold){
+  ctx.font=FONT(bold?700:500,20); ctx.textBaseline="middle";
+  const h=40, pad=16, gap=8; let cx=x;
+  for(const a of arr){
+    const w=Math.min(ctx.measureText(a).width+pad*2, maxW);
+    if(cx+w > x+maxW){ cx=x; y+=h+gap; }
+    if(PAINT){ rr(ctx,cx,y,w,h,20); ctx.fillStyle=bg; ctx.fill(); ctx.fillStyle=fg; ctx.fillText(a,cx+pad,y+h/2+1); }
+    cx+=w+gap;
+  }
+  return y+h;
+}
+function typeBlock(ctx,t,score,rank,x,y,w){
+  const d=TYPES[t], c=IMG[t], inner=w-64; let yy=y+32;
+  if(PAINT){ ctx.fillStyle=c; ctx.beginPath(); ctx.arc(x+32+30,yy+30,30,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle="#fff"; ctx.font=FONT(900,30); ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(t,x+62,yy+31); ctx.textAlign="left"; }
+  text(ctx,`${d.ko} (${d.en})`,x+112,yy+2,inner-200,36,FONT(900,30),c);
+  text(ctx,`${rank} · ${d.sub}`,x+112,yy+40,inner-200,26,FONT(500,18),IMG.muted);
+  if(PAINT){ ctx.font=FONT(900,34); ctx.fillStyle=c; ctx.textAlign="right"; ctx.textBaseline="top"; ctx.fillText(score+"점",x+w-32,yy+4);
+    ctx.font=FONT(500,16); ctx.fillStyle=IMG.muted; ctx.fillText("/ 30점",x+w-32,yy+44); ctx.textAlign="left"; }
+  yy+=88;
+  yy=text(ctx,d.who,x+32,yy,inner,32,FONT(500,21),IMG.ink)+14;
+  yy=text(ctx,"주요 특징",x+32,yy,inner,30,FONT(700,19),c);
+  for(const f of d.feat){ text(ctx,"✔",x+32,yy,30,30,FONT(900,19),c); yy=text(ctx,f,x+60,yy,inner-28,30,FONT(500,20),IMG.ink); }
+  yy+=12;
+  yy=text(ctx,"유형 프로필",x+32,yy,inner,30,FONT(700,19),c)+2;
+  for(const [k,v] of Object.entries(d.prof)){ text(ctx,k,x+32,yy,110,28,FONT(700,18),IMG.muted); yy=text(ctx,v,x+150,yy,inner-118,28,FONT(500,19),IMG.ink)+2; }
+  yy+=12;
+  yy=text(ctx,"대표 직업",x+32,yy,inner,30,FONT(700,19),c)+4;
+  yy=pills(ctx,d.jobs,x+32,yy,inner,c,"#fff",true)+16;
+  yy=text(ctx,"창업 · 부업 · 일자리",x+32,yy,inner,30,FONT(700,19),c)+4;
+  yy=pills(ctx,d.side,x+32,yy,inner,IMG.soft,IMG.ink,false);
+  return yy+32;
+}
+function drawResult(ctx,sc,ranked){
+  const W=1080, P=48, top1=ranked[0], top2=ranked[1];
+  if(PAINT){ ctx.fillStyle=IMG.bg; ctx.fillRect(0,0,W,ctx.canvas.height); }
+  let y=P;
+  // 머리 띠
+  ctx.font=FONT(500,22);
+  const pairKey=ORDER.filter(t=>t===top1||t===top2).join("");
+  const note=(PAIR_NOTE[pairKey]||"")+". "+TYPES[top1].who+"에 가장 가깝고, "+TYPES[top2].ko+"의 성향도 함께 지니고 있어요.";
+  const nl=lines(ctx,note,W-2*P-64).length;
+  const hh=210+nl*34;
+  if(PAINT){ const g=ctx.createLinearGradient(P,y,W-P,y+hh); g.addColorStop(0,IMG.brand); g.addColorStop(1,IMG.brandD); rr(ctx,P,y,W-2*P,hh,28); ctx.fillStyle=g; ctx.fill(); }
+  const d=state.date?new Date(state.date):new Date();
+  text(ctx,"직업선호도 간편검사 결과지",P+32,y+30,600,30,FONT(700,22),"#ffffff");
+  text(ctx,`${state.name?state.name+" 님 · ":""}${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()} 검사`,P+32,y+62,600,28,FONT(500,19),"#d8f0e0");
+  text(ctx,`${top1}${top2} · ${TYPES[top1].ko} + ${TYPES[top2].ko}`,P+32,y+104,W-2*P-260,60,FONT(900,46),"#ffffff");
+  text(ctx,note,P+32,y+180,W-2*P-64,34,FONT(500,22),"#ffffff");
+  if(PAINT){ [top1,top2].forEach((t,i)=>{ const cx=W-P-200+i*110, cy=y+70; ctx.fillStyle="#ffffff"; ctx.beginPath(); ctx.arc(cx,cy,44,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=IMG[t]; ctx.beginPath(); ctx.arc(cx,cy,40,0,Math.PI*2); ctx.fill(); ctx.fillStyle="#fff"; ctx.font=FONT(900,40); ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(t,cx,cy+2); ctx.textAlign="left"; }); }
+  y+=hh+24;
+  // 육각형 + 점수
+  const ch=560;
+  if(PAINT){ rr(ctx,P,y,W-2*P,ch,24); ctx.fillStyle=IMG.card; ctx.fill(); ctx.strokeStyle=IMG.line; ctx.lineWidth=2; ctx.stroke(); }
+  text(ctx,"나의 흥미 육각형",P+32,y+28,400,34,FONT(900,26),IMG.ink);
+  if(PAINT){
+    const cx=P+280, cy=y+310, R=170, ang=i=>(-90+i*60)*Math.PI/180, pt=(i,r)=>[cx+r*Math.cos(ang(i)),cy+r*Math.sin(ang(i))];
+    const hex=(r)=>{ ctx.beginPath(); ORDER.forEach((_,i)=>{ const [px,py]=pt(i,r); i?ctx.lineTo(px,py):ctx.moveTo(px,py); }); ctx.closePath(); };
+    hex(R); ctx.fillStyle="#f5fbf7"; ctx.fill();
+    [10,20,30].forEach(l=>{ hex(R*l/30); ctx.strokeStyle=IMG.line; ctx.lineWidth=l===30?2.5:1.5; ctx.stroke();
+      ctx.fillStyle=IMG.muted; ctx.font=FONT(500,14); ctx.textBaseline="top"; ctx.fillText(String(l),cx+R*l/30*0.5+6,cy-R*l/30*0.866-2); });
+    ORDER.forEach((_,i)=>{ const [px,py]=pt(i,R); ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(px,py); ctx.strokeStyle=IMG.line; ctx.lineWidth=1.2; ctx.stroke(); });
+    ctx.font=FONT(700,15); ctx.fillStyle=IMG.muted; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillText("사물",cx,cy-R*.45); ctx.fillText("사람",cx,cy+R*.5); ctx.fillText("아이디어",cx+R*.55,cy); ctx.fillText("자료",cx-R*.55,cy);
+    ctx.beginPath(); ORDER.forEach((t,i)=>{ const [px,py]=pt(i,R*sc[t]/30); i?ctx.lineTo(px,py):ctx.moveTo(px,py); }); ctx.closePath();
+    ctx.fillStyle="rgba(31,138,76,.28)"; ctx.fill(); ctx.strokeStyle=IMG.brand; ctx.lineWidth=4; ctx.lineJoin="round"; ctx.stroke();
+    ORDER.forEach((t,i)=>{ const [px,py]=pt(i,R*sc[t]/30); ctx.beginPath(); ctx.arc(px,py,7,0,Math.PI*2); ctx.fillStyle=IMG[t]; ctx.fill(); ctx.strokeStyle="#fff"; ctx.lineWidth=2.5; ctx.stroke(); });
+    ORDER.forEach((t,i)=>{ const [px,py]=pt(i,R+52); ctx.beginPath(); ctx.arc(px,py-10,21,0,Math.PI*2); ctx.fillStyle=IMG[t]; ctx.fill();
+      ctx.fillStyle="#fff"; ctx.font=FONT(900,20); ctx.fillText(t,px,py-9); ctx.fillStyle=IMG.ink; ctx.font=FONT(700,16); ctx.fillText(`${TYPES[t].ko} ${sc[t]}`,px,py+26); });
+    ctx.textAlign="left";
+    // 막대
+    const bx=P+590, bw=W-P-32-bx; let by=y+150;
+    const rankOf=t=>1+ORDER.filter(x=>sc[x]>sc[t]).length;
+    ranked.forEach(t=>{
+      ctx.font=FONT(700,19); ctx.fillStyle=IMG[t]; ctx.textBaseline="middle"; ctx.fillText(`${t} ${TYPES[t].ko}`,bx,by);
+      ctx.textAlign="right"; ctx.fillStyle=IMG.ink; ctx.font=FONT(900,20); ctx.fillText(`${sc[t]}점${rankOf(t)<=2?` (${rankOf(t)}위)`:""}`,bx+bw,by); ctx.textAlign="left";
+      rr(ctx,bx,by+18,bw,12,6); ctx.fillStyle=IMG.line; ctx.fill();
+      rr(ctx,bx,by+18,Math.max(12,bw*sc[t]/30),12,6); ctx.fillStyle=IMG[t]; ctx.fill();
+      by+=58;
+    });
+  }
+  y+=ch+24;
+  // 대표 유형 카드
+  [[top1,"1순위"],[top2,"2순위"]].forEach(([t,rk])=>{
+    const was=PAINT; PAINT=false; const h=typeBlock(ctx,t,sc[t],rk,P,y,W-2*P)-y; PAINT=was;
+    if(PAINT){ rr(ctx,P,y,W-2*P,h,24); ctx.fillStyle=IMG.card; ctx.fill(); ctx.strokeStyle=IMG.line; ctx.lineWidth=2; ctx.stroke();
+      ctx.save(); rr(ctx,P,y,W-2*P,h,24); ctx.clip(); ctx.fillStyle=IMG[t]; ctx.fillRect(P,y,W-2*P,8); ctx.restore(); }
+    typeBlock(ctx,t,sc[t],rk,P,y,W-2*P);
+    y+=h+24;
+  });
+  ctx.textAlign="center";
+  y=text(ctx,"홀랜드 직업흥미이론(RIASEC)을 바탕으로 한 간편검사입니다. 결과는 참고용입니다.",W/2,y+4,W,28,FONT(500,17),IMG.muted);
+  ctx.textAlign="left";
+  return y+P-20;
+}
+async function buildResultCanvas(){
+  try{ await document.fonts.load(FONT(900,20)); await document.fonts.load(FONT(500,20)); await document.fonts.load(FONT(700,20)); }catch(e){}
+  const sc={}; ORDER.forEach(t=>sc[t]=scoreOf(t));
+  const ranked=[...ORDER].sort((a,b)=>sc[b]-sc[a]);
+  const m=document.createElement("canvas"); m.width=1080; m.height=10;
+  PAINT=false; const H=Math.ceil(drawResult(m.getContext("2d"),sc,ranked)); PAINT=true;
+  const cv=document.createElement("canvas"); cv.width=1080; cv.height=H;
+  drawResult(cv.getContext("2d"),sc,ranked);
+  return cv;
+}
+// 결과 이미지를 한 장짜리 PDF(A4 너비)로 감싸기: JPEG를 그대로 넣는 최소 PDF
+function canvasToPDF(cv){
+  return new Promise((resolve,reject)=>cv.toBlob(async b=>{
+    try{
+      const jpg=new Uint8Array(await b.arrayBuffer());
+      const PW=595.28, PH=+(PW*cv.height/cv.width).toFixed(2);
+      const enc=new TextEncoder(), parts=[], offs=[]; let len=0;
+      const put=x=>{ const u=typeof x==="string"?enc.encode(x):x; parts.push(u); len+=u.length; };
+      const obj=(n,body)=>{ offs[n]=len; put(`${n} 0 obj\n`); (Array.isArray(body)?body:[body]).forEach(put); put("\nendobj\n"); };
+      put("%PDF-1.4\n"); put(new Uint8Array([0x25,0xE2,0xE3,0xCF,0xD3,0x0A]));
+      obj(1,"<< /Type /Catalog /Pages 2 0 R >>");
+      obj(2,"<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
+      obj(3,`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`);
+      obj(4,[`<< /Type /XObject /Subtype /Image /Width ${cv.width} /Height ${cv.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpg.length} >>\nstream\n`,jpg,"\nendstream"]);
+      const cs=`q ${PW} 0 0 ${PH} 0 0 cm /Im0 Do Q`;
+      obj(5,`<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`);
+      const x=len;
+      put("xref\n0 6\n0000000000 65535 f \n"+[1,2,3,4,5].map(n=>String(offs[n]).padStart(10,"0")+" 00000 n \n").join(""));
+      put(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${x}\n%%EOF\n`);
+      resolve(new Blob(parts,{type:"application/pdf"}));
+    }catch(e){ reject(e); }
+  },"image/jpeg",0.92));
+}
+const downloadsP = (window.claude && typeof window.claude.use==="function") ? window.claude.use("downloads").catch(()=>null) : Promise.resolve(null);
+async function saveResult(kind){
+  const btn=$(kind==="pdf"?"pdfBtn":"saveBtn"), msg=$("saveMsg");
+  $("pdfBtn").disabled=$("saveBtn").disabled=true; const label=btn.textContent; btn.textContent=kind==="pdf"?"PDF 만드는 중…":"이미지 만드는 중…"; msg.textContent="";
+  try{
+    const cv=await buildResultCanvas();
+    const blob = kind==="pdf" ? await canvasToPDF(cv) : await new Promise(r=>cv.toBlob(r,"image/png"));
+    const d=state.date?new Date(state.date):new Date();
+    const ymd=`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`;
+    const filename=`직업흥미검사_결과${state.name?"_"+state.name.replace(/[\\/:*?"<>|]/g,""):""}_${ymd}.${kind}`;
+    const what = kind==="pdf" ? "결과 PDF" : "결과 이미지";
+    const dl = window.claude ? await downloadsP : null;
+    if(dl){
+      try{ await dl.save({filename,data:blob}); msg.textContent=`${what}를 저장했어요.`; }
+      catch(e){ msg.textContent = e && e.code==="declined" ? "저장을 취소했어요." : e && e.code==="rate_limited" ? "저장 창이 이미 열려 있어요. 잠시 뒤 다시 눌러 주세요." : "이 화면에서는 파일을 저장할 수 없어요. 결과 화면을 캡처해 보관해 주세요."; }
+    } else if(window.claude){
+      msg.textContent="이 화면에서는 파일을 저장할 수 없어요. 결과 화면을 캡처해 보관해 주세요.";
+    } else {
+      const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; document.body.appendChild(a); a.click();
+      setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1500);
+      msg.textContent=`${what}를 저장했어요.`;
+    }
+  }catch(e){ msg.textContent="파일을 만들지 못했어요. 다시 눌러 주세요."; }
+  $("pdfBtn").disabled=$("saveBtn").disabled=false; btn.textContent=label;
+}
+$("pdfBtn").onclick = () => saveResult("pdf");
+$("saveBtn").onclick = () => saveResult("png");
 $("editBtn").onclick = () => { state.done=false; state.page=0; save(); renderPage(); show("test"); };
 $("retryBtn").onclick = () => { if(!confirm("응답을 모두 지우고 처음부터 다시 할까요?")) return; state = { name:state.name, ans:{}, page:0, done:false }; save(); $("resumeBtn").classList.add("hidden"); show("intro"); };
 </script>

@@ -1,0 +1,707 @@
+<title>직업선호도 간편검사</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef6f0; --card:#ffffff; --ink:#1b2b22; --muted:#5b6f63; --line:#d3e5d9;
+  --brand:#1f8a4c; --brand-d:#156b3a; --brand-2:#5cc17f; --soft:#e2f3e8; --soft-2:#f5fbf7;
+  --R:#2f7fd0; --I:#4c9a2a; --A:#e0a019; --S:#d4473b; --E:#7b4bb0; --C:#2b9aa0;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1712; --card:#16231b; --ink:#e4efe7; --muted:#9db3a4; --line:#2a3d31;
+    --brand:#4fc07a; --brand-d:#3aa863; --brand-2:#7fd89d; --soft:#1c3325; --soft-2:#13201a; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1712; --card:#16231b; --ink:#e4efe7; --muted:#9db3a4; --line:#2a3d31;
+  --brand:#4fc07a; --brand-d:#3aa863; --brand-2:#7fd89d; --soft:#1c3325; --soft-2:#13201a; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR",system-ui,sans-serif;line-height:1.65;-webkit-text-size-adjust:100%}
+.wrap{max-width:820px;margin:0 auto;padding-block:20px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.app{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;color:var(--brand);font-size:15px}
+.brand .logo{width:30px;height:30px}
+.theme{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+h1{font-size:clamp(26px,5.5vw,38px);font-weight:900;margin:14px 0 4px;letter-spacing:-.5px;color:var(--brand-d)}
+:root[data-theme="dark"] h1{color:var(--brand)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) h1{color:var(--brand)}}
+h2{font-size:20px;margin:0 0 12px;letter-spacing:-.3px}
+h3{font-size:16px;margin:0 0 8px}
+.rule{height:4px;background:linear-gradient(90deg,var(--brand-2),var(--brand));border-radius:4px;margin:8px 0 18px}
+.lead{color:var(--muted);margin:0 0 18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:14px}
+.btn{appearance:none;border:0;border-radius:12px;padding:13px 22px;font:inherit;font-weight:700;cursor:pointer;background:var(--brand);color:#fff;transition:filter .15s,opacity .15s}
+.btn:hover{filter:brightness(1.07)}
+.btn:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.btn.ghost{background:transparent;color:var(--brand);border:1.5px solid var(--brand)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.small{font-size:13px;color:var(--muted)}
+.hidden{display:none!important}
+input[type=text]{font:inherit;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--soft-2);color:var(--ink);width:100%;max-width:320px}
+input[type=text]:focus{outline:none;border-color:var(--brand)}
+
+/* 소개 */
+.scale{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.scale div{border-radius:12px;padding:12px 8px;text-align:center;background:var(--soft);font-weight:700}
+.scale b{display:block;font-size:22px;color:var(--brand)}
+.steps{margin:0;padding-left:20px}
+.steps li{margin:4px 0}
+.hexmini{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:16px 0 4px}
+.hexmini span{border-radius:10px;padding:8px 2px;text-align:center;color:#fff;font-weight:900;font-size:14px}
+.hexmini small{display:block;font-weight:500;font-size:11px;opacity:.95}
+
+/* 진단지 */
+.top{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:10px 0 12px;z-index:3}
+.bar{height:8px;background:var(--line);border-radius:8px;overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--brand-2),var(--brand));width:0;transition:width .3s}
+.meta{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);margin-top:6px}
+.sheet-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.sheet-head .no{font-size:13px;font-weight:700;color:var(--brand);background:var(--soft);padding:3px 10px;border-radius:999px}
+.legend{display:flex;gap:6px;font-size:12px;color:var(--muted)}
+.qs{list-style:none;margin:12px 0 0;padding:0}
+.q{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px dashed var(--line)}
+.q:first-child{border-top:0}
+.q .n{width:24px;color:var(--muted);font-size:13px;text-align:right;flex:none}
+.q .w{flex:1;font-weight:700;font-size:17px}
+.seg{display:flex;gap:6px;flex:none}
+.seg button{appearance:none;border:1.5px solid var(--line);background:var(--soft-2);color:var(--ink);border-radius:10px;min-width:58px;padding:7px 6px;font:inherit;font-size:13px;cursor:pointer;line-height:1.2}
+.seg button b{display:block;font-size:16px}
+.seg button:hover{border-color:var(--brand)}
+.seg button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+.q.miss .w{color:var(--S)}
+.q.miss{animation:shake .35s}
+@media (prefers-reduced-motion: reduce){.q.miss{animation:none}.bar>i{transition:none}}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.subtotal{margin-top:12px;padding:10px 14px;border-radius:12px;background:var(--soft);display:flex;justify-content:space-between;font-weight:700}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:16px}
+@media (max-width:520px){
+  .q{flex-wrap:wrap;gap:6px 10px}
+  .q .w{flex:1 1 calc(100% - 40px)}
+  .seg{width:100%;padding-left:34px}
+  .seg button{flex:1}
+}
+
+/* 결과 */
+.res-head{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.code{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.code .ltr{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:900;font-size:28px}
+.code .plus{font-weight:900;color:var(--muted)}
+.hero{border-radius:20px;padding:22px;background:linear-gradient(135deg,var(--brand),var(--brand-d));color:#fff;margin-bottom:14px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-50px;top:-50px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.12)}
+.hero .k{font-size:14px;opacity:.92}
+.hero .big{font-size:clamp(24px,5vw,32px);font-weight:900;margin:4px 0 8px;letter-spacing:-.4px}
+.hero p{margin:0;opacity:.95}
+.chart-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px;align-items:center}
+@media (max-width:680px){.chart-grid{grid-template-columns:1fr}}
+.hex svg{width:100%;height:auto;display:block}
+.bars{display:flex;flex-direction:column;gap:9px}
+.bars .r{display:grid;grid-template-columns:76px 1fr 40px;gap:8px;align-items:center;font-size:14px}
+.bars .r .t{font-weight:700}
+.bars .r .tr{height:12px;background:var(--line);border-radius:8px;overflow:hidden}
+.bars .r .tr i{display:block;height:100%;border-radius:8px}
+.bars .r .v{text-align:right;font-weight:900}
+.rank{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:var(--brand);border-radius:6px;padding:0 6px;margin-left:4px;vertical-align:1px}
+
+.type-card{border-radius:18px;border:1px solid var(--line);background:var(--card);overflow:hidden;margin-bottom:14px}
+.type-card .th{padding:18px 20px;display:flex;gap:14px;align-items:center;border-top:6px solid var(--c)}
+.type-card .th .ic{width:52px;height:52px;border-radius:50%;background:var(--c);color:#fff;display:grid;place-items:center;font-weight:900;font-size:24px;flex:none}
+.type-card .th .nm{font-size:22px;font-weight:900;color:var(--c);line-height:1.2}
+.type-card .th .nm small{font-size:15px;opacity:.85}
+.type-card .th .sub{font-size:13px;color:var(--muted)}
+.type-card .th .sc{margin-left:auto;text-align:right;font-weight:900;font-size:22px;color:var(--c)}
+.type-card .th .sc small{display:block;font-size:11px;color:var(--muted);font-weight:500}
+.type-card .tb{padding:0 20px 20px}
+.desc{background:var(--soft-2);border-left:4px solid var(--c);padding:10px 14px;border-radius:8px;margin:0 0 14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:600px){.two{grid-template-columns:1fr}}
+.feat{list-style:none;padding:0;margin:0}
+.feat li{padding-left:22px;position:relative;margin:4px 0}
+.feat li::before{content:"✔";position:absolute;left:0;color:var(--c);font-weight:900}
+.prof{width:100%;border-collapse:collapse;font-size:14px;margin-top:4px}
+.prof th{width:84px;text-align:left;color:var(--c);font-weight:700;padding:7px 8px 7px 0;vertical-align:top;white-space:nowrap}
+.prof td{padding:7px 0;border-bottom:1px solid var(--line)}
+.prof tr:last-child td{border-bottom:0}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tags span{font-size:13px;padding:4px 10px;border-radius:999px;background:var(--soft);border:1px solid var(--line)}
+.tags.strong span{background:var(--c);color:#fff;border-color:transparent;font-weight:700}
+.lbl{font-size:13px;font-weight:700;color:var(--c);margin:14px 0 6px}
+details.more summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--brand);margin-top:12px}
+details.more .tags{margin-top:8px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tabs button{appearance:none;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 14px;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--c);border-color:var(--c);color:#fff}
+.note{font-size:13px;color:var(--muted);background:var(--soft-2);border:1px dashed var(--line);border-radius:12px;padding:12px 14px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.confirm{margin-top:12px;padding:14px 16px;border-radius:12px;background:var(--soft);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.confirm span{flex:1 1 200px;font-weight:700}
+footer{margin-top:24px;text-align:center;font-size:12px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff}
+  .top,.theme,.no-print{display:none!important}
+  .card,.type-card{break-inside:avoid}
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+<div class="wrap">
+  <header class="app">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 40 40" aria-hidden="true"><polygon points="20,3 35,11.5 35,28.5 20,37 5,28.5 5,11.5" fill="var(--brand)"/><polygon points="20,11 28,15.5 27,25 20,29 12,24 13,16" fill="#fff" opacity=".9"/></svg>
+      직업선호도 간편검사
+    </div>
+    <button class="theme" id="themeBtn" type="button">🌙 어둡게</button>
+  </header>
+
+  <!-- 소개 -->
+  <section id="intro">
+    <h1>나에게 맞는 일은?</h1>
+    <div class="rule"></div>
+    <p class="lead">홀랜드(Holland)의 6가지 흥미유형(RIASEC)으로 나의 직업 흥미를 알아보는 간편검사입니다. 60개의 형용사를 읽고 나와 얼마나 맞는지 점수를 매겨 주세요.</p>
+
+    <div class="card">
+      <h2>검사 방법</h2>
+      <ol class="steps">
+        <li>6개 영역, 영역마다 10개의 단어가 나옵니다.</li>
+        <li>각 단어가 <b>나를 얼마나 잘 나타내는지</b> 골라 주세요.</li>
+        <li>정답은 없습니다. 오래 고민하지 말고 떠오르는 대로 고르세요.</li>
+      </ol>
+      <div class="scale">
+        <div><b>1점</b>싫다</div>
+        <div><b>2점</b>보통</div>
+        <div><b>3점</b>좋다</div>
+      </div>
+      <div class="hexmini" id="hexmini"></div>
+      <p class="small">소요 시간: 약 5분</p>
+    </div>
+
+    <div class="card">
+      <label for="name"><h3>이름 (선택)</h3></label>
+      <input type="text" id="name" maxlength="20" placeholder="결과지에 표시될 이름">
+      <div class="row" style="margin-top:18px">
+        <button class="btn" id="startBtn" type="button">검사 시작하기</button>
+        <button class="btn ghost hidden" id="resumeBtn" type="button">이어서 하기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 진단지 -->
+  <section id="test" class="hidden">
+    <div class="top">
+      <div class="bar"><i id="prog"></i></div>
+      <div class="meta"><span id="pageLbl">영역 1 / 6</span><span id="cntLbl">0 / 60 응답</span></div>
+    </div>
+    <div class="card">
+      <div class="sheet-head">
+        <h2 id="sheetTitle" style="margin:0">영역 1</h2>
+        <span class="no" id="sheetNo">10문항</span>
+      </div>
+      <p class="small" style="margin:4px 0 0">각 단어가 나를 얼마나 잘 나타내나요?</p>
+      <ol class="qs" id="qs"></ol>
+      <div class="subtotal"><span>이 영역 합계</span><span id="subtotal">0점</span></div>
+    </div>
+    <div class="nav">
+      <button class="btn ghost" id="prevBtn" type="button">← 이전</button>
+      <button class="btn" id="nextBtn" type="button">다음 →</button>
+    </div>
+  </section>
+
+  <!-- 결과지 -->
+  <section id="result" class="hidden">
+    <div class="res-head">
+      <div>
+        <h1 style="margin-bottom:0">흥미검사 결과지</h1>
+        <div class="small" id="resMeta"></div>
+      </div>
+      <div class="code" id="codeBox"></div>
+    </div>
+    <div class="rule"></div>
+
+    <div class="hero" id="hero"></div>
+
+    <div class="card">
+      <h2>나의 흥미 육각형</h2>
+      <div class="chart-grid">
+        <div class="hex" id="hex"></div>
+        <div>
+          <div class="bars" id="bars"></div>
+          <p class="small" style="margin:12px 0 0">영역별 점수 범위: 10 ~ 30점 · 육각형이 한쪽으로 크게 뻗을수록 그 유형의 흥미가 뚜렷합니다.</p>
+        </div>
+      </div>
+    </div>
+
+    <h2 style="margin-top:22px">나의 대표 유형</h2>
+    <div id="topCards"></div>
+
+    <div class="card">
+      <h2>6가지 유형 모두 살펴보기</h2>
+      <div class="tabs" id="tabs" role="tablist"></div>
+      <div id="tabBody"></div>
+    </div>
+
+    <div class="note" id="interpret"></div>
+
+    <div class="row no-print" style="margin-top:18px">
+      <button class="btn" id="pdfBtn" type="button">결과 PDF 저장</button>
+      <button class="btn ghost" id="saveBtn" type="button">이미지(PNG) 저장</button>
+      <button class="btn ghost" id="editBtn" type="button">답 수정하기</button>
+      <button class="btn ghost" id="retryBtn" type="button">처음부터 다시</button>
+    </div>
+    <p class="small no-print" id="saveMsg" aria-live="polite" style="margin:8px 0 0"></p>
+    <div class="confirm no-print" id="confirmBox" hidden><span>응답을 모두 지우고 처음부터 다시 할까요?</span><button class="btn" id="yesBtn" type="button">네, 다시 할게요</button><button class="btn ghost" id="noBtn" type="button">취소</button></div>
+  </section>
+
+  <footer>홀랜드 직업흥미이론(RIASEC)을 바탕으로 한 간편검사입니다. 결과는 참고용이며 정식 직업선호도검사를 대신하지 않습니다.</footer>
+</div>
+
+<script>
+/* ───────── 데이터 ───────── */
+const ORDER = ["R","I","A","S","E","C"];
+const TYPES = {
+  R:{ko:"현실형",en:"Realistic",sub:"실행 / 사물 지향",
+     words:["강건한","솔직한","물질주의적인","완고한","실제적인","현실적인","엄격한","안정적인","무뚝뚝한","검소한"],
+     act:"손이나 도구를 사용하여 일하기, 물건을 수리하거나 만드는 일, 동물이나 기계를 다루는 기술적인 일",
+     who:"야외활동, 연장, 도구 등을 가지고 일하기를 즐기는 사람",
+     feat:["손이나 도구를 사용하는 일 선호","기계/신체적으로 숙련됨","감정 표현보다는 실제적 활동 중시"],
+     prof:{"선호활동":"기계나 도구 등의 조작","능력":"기계적 능력","개인 성향":"현실적이고 신중한 성격","타인 평가":"겸손하고 솔직하지만 독단적이고 고집이 센 사람","인생 가치":"눈에 보이는 성취에 대한 물질적 보상"},
+     jobs:["자동차정비사","소방관","목수","농부","경찰","드론 정비사","스마트팜 기술자"],
+     side:["건설 인부","용접사","배관공","배달원","창고관리","농업","조립 생산직","수선"],
+     more:"계산대수납원(캐셔), 신용카드배달원, 가스계기검침원, 안전점검원, 가전제품 수리원, 상표부착원, 건설업 현장 소장, 건축 및 토목감리기술자, 검표원, 계기검침원, 금속 및 플라스틱제품조립원, 금형원, 꽃배달원, 냉동(냉장)기 수리 및 조작원, 노견정리원, 도배원, 도서정리원, 도시락배달원, 매표원, 목재가구조립원, 문서수발원, 물품보관 및 정리원, 미장공, 방역원, 방적준비원(섬유준비원), 배관원, 버스 및 승합차 운전원, 버스전용차선단속원, 병원청소원, 사무실청소원, 서류배달원, 세차원, 세탁물수거 및 배달원, 수금원, 수도검침원, 승용차운전원, 신문배달원, 쓰레기 수거원, 아파트청소원, 요금정산원, 욕실 및 락카룸 관리인, 용접원, 우편물접수 및 발송원, 음식료품 가공원, 의복 및 관련제품 수선원(양장사), 의치배달원, 재단사, 재봉사, 재활용품 분류원, 전기 및 전자장비 조립원, 전기검침원, 전단지배포 및 벽보원, 전통건물 건축원, 제품단순검사원(단순선별원), 제품단순조립원, 조리사, 주방보조원, 주유원 및 가스충전원, 주정차위반단속원, 주차요금정산원, 질서유지원, 컴퓨터자료 입력원, 탈의실관리인, 통행료 정산원, 파출부, 포장원, 플라스틱사출보조원, 플라스틱압출보조원, 호텔 및 숙박시설청소원, 홀써빙원, 환경 모니터링 요원, 환경미화원"},
+  I:{ko:"탐구형",en:"Investigative",sub:"사고 / 아이디어 지향",
+     words:["비판적인","호기심이 많은","창의적인","독립적인","지적인","논리적인","수학적인","방법적인","합리적인","과학적인"],
+     act:"수학·물리학·생물학·사회과학 같은 학문 분야에서 연구하기, 수학적인 문제 풀기, 분석적인 사고, 복잡한 원리나 방법 이해하기",
+     who:"논리적으로 분석하고 난이도 높은 문제풀이나 연구를 선호하는 사람",
+     feat:["연구 활동 및 분석적 사고 선호","지적이고 학구적인 성향","독립적으로 일하는 것을 좋아함"],
+     prof:{"선호활동":"자연 및 사회현상의 탐구, 이해, 예측 및 통제","능력":"학구적 능력","개인 성향":"분석적이고 지적인 성격","타인 평가":"지적이고 현학적이며 독립적이지만 내성적인 사람","인생 가치":"지식의 개발과 습득"},
+     jobs:["학자(언어, 심리, 물리 등)","경영분석가","스마트 헬스케어 분석가","데이터 전문가"],
+     side:["컴퓨터 조립","기술 지원","전자 수리","드론 조작"],
+     more:"경영컨설턴트, 공학기술자문가, 농림어업관련 자문가"},
+  A:{ko:"예술형",en:"Artistic",sub:"창조 / 아이디어 지향",
+     words:["창의적인","직관적인","정서적인","표현적인","비현실적인","독립적인","혁신적인","통찰력 있는","자유분방한","예민한"],
+     act:"사물을 묘사하기, 작가·음악가·연극인과 같은 예술적 창의성을 발휘하는 일, 미술·문학·음악 관련 활동",
+     who:"아이디어를 접목하여 의견을 표현하거나, 자율성이 보장되는 일이나 창의적인 일을 하는 사람",
+     feat:["자유롭고 독창적인 활동 선호","상상력이 풍부하고 감수성이 예민","구조화된 틀과 관습을 기피"],
+     prof:{"선호활동":"문학, 음악, 미술 활동","능력":"예술적 능력","개인 성향":"경험에 대한 개방적 성격","타인 평가":"유별나고 혼란스러워 보이며 예민하지만 창조적인 사람","인생 가치":"아이디어, 정서, 감정의 창조적 표현"},
+     jobs:["작가","음악가","디자이너(인테리어, 웹)","배우","미용사","디지털콘텐츠 창작자"],
+     side:["캘리그라피","타투 디자이너","유튜브 콘텐츠 제작","이모티콘 제작","네일아트","목공예·가구 리폼","미용","조경원"],
+     more:"요리사, 조경원, 미술치료사, 음악치료사, 원예치료사, 한옥인테리어, 전통한옥설계가"},
+  S:{ko:"사회형",en:"Social",sub:"자선 / 사람 지향",
+     words:["수용적인","배려하는","공감적인","우호적인","도움을 주는","친절한","설득적인","책임을 질 수 있는","가르치는","이해하는"],
+     act:"다른 사람과 함께 일하기, 다른 사람들의 복지에 대한 관심, 사람들을 교육하거나 치료하는 일",
+     who:"다른 사람을 돕고, 가르치고, 봉사활동을 선호하는 사람",
+     feat:["타인의 복지와 교육에 관심","친절하고 이해심이 많음","사람들과 협력하고 함께 일하는 것을 선호"],
+     prof:{"선호활동":"상담, 교육, 봉사활동","능력":"대인 지향적 능력","개인 성향":"동정심과 참을성 있는 성격","타인 평가":"이해심 많고 사교적이고 동정적이며 이타적인 사람","인생 가치":"타인의 복지와 사회적 서비스 제공"},
+     jobs:["사회복지사","상담가","간호사","교사","시니어 여가 매니저","주거복지사"],
+     side:["요양보호사","상담 보조","미용 서비스","판매사원","서빙","바리스타"],
+     more:"간병인, 데스크안내원, 민원상담원, 결혼상담원(커플매니저), 교통지도원, 기숙사 사감, 기술학원 강사, 보육사, 사회교육강사, 사회복지보조요원, 사회복지시설 보조원, 산후조리종사원, 상담사, 상담전문가, 시설 및 견학안내원, 시설보육사, 안내원, 장례지도사(장의사), 접수예약사무원, 주차안내원, 직업상담사, 통역원, 화랑 및 박물관안내원, 가정봉사원"},
+  E:{ko:"진취형",en:"Enterprising",sub:"관리 / 과제 지향",
+     words:["야망 있는","분명한","자기주장적인","확신하는","결정을 잘하는","지배적인","열성적인","영향력 있는","설득적인","생산적인"],
+     act:"개인 또는 조직의 목적을 위해 타인을 지도·통제·설득하는 일, 경제적 이익이나 지위·명예·권력을 얻는 활동",
+     who:"주도적으로 일을 하며, 집단의 지도자로서 사회적 지위 획득에 관심이 많은 사람",
+     feat:["조직의 목적을 위해 타인을 지도/설득","리더십, 야망, 열정이 있음","지위와 성취를 중요하게 여김"],
+     prof:{"선호활동":"설득, 지도 활동","능력":"경영 및 영업 능력","개인 성향":"대담하고 사교적인 성격","타인 평가":"열정적이고 외향적이며 모험적이지만 야심 있는 사람","인생 가치":"경제적 성취와 사회적 지위"},
+     jobs:["기업대표","정치가","영업 관리자","변호사","창업기획자","마케터"],
+     side:["푸드트럭 창업","중고물품 거래","배달대행","휴대폰 소매업","전자상거래(스마트스토어)"],
+     more:"부동산중개인, 호텔지배인, 환경감시원, ISO인증심사원, 중소기업경영기술전문가, 건널목관리원, 검수원, 경비원(건물관리원), 공원관리인, 교구관리인, 기계시설 및 설비관리원, 매장감시원, 묘지관리인, 문화재관리인, 배수지 관리원, 보일러조작원, 산림보호원, 생산관리기술자, 수렵 감시원, 식물관리원, 식물원관리인, 쓰레기 매립장 관리인, 야생생물보호구역 감시원, 영선원(건물보수원), 운동장관리인, 인사노무관리자, 일반영업원, 전기시설관리원, 조류보호구역감시원, 주차장 관리원, 주택관리사, 창고관리인, 창업지원컨설턴트, 텔레마케터, 판매원, 품질관리기술자, 하천감시원"},
+  C:{ko:"관습형",en:"Conventional",sub:"동조 / 자료 지향",
+     words:["조직화된","책임을 질 수 있는","효율적인","질서정연한","순응하는","실제적인","정확한","체계적인","보수적인","잘 통제된"],
+     act:"세부적이고 질서정연한 일, 사무의 체계적인 정리, 자료를 정확하게 다루는 일",
+     who:"정확하고 체계적으로 일하며, 꼼꼼하게 정리하고 기한 내에 일을 마무리하는 사람",
+     feat:["정확하고 체계적인 활동 선호","자료 기록, 정리, 계산에 능숙함","책임감이 강하고 규칙을 잘 준수함"],
+     prof:{"선호활동":"규칙을 만들거나 따르는 활동","능력":"사무적 능력","개인 성향":"현실적이고 성실한 성격","타인 평가":"안정을 추구하고 규율적이지만 유능한 사람","인생 가치":"금전적 성취와 사회사업, 정치 영역"},
+     jobs:["회계사","세무사","경리사무원","비서","법무사","데이터 라벨러"],
+     side:["창고 재고 관리","문서 스캔/정리 아르바이트","사무 보조","도서관 정리"],
+     more:"총무 및 인사사무원, 회계 및 경리사무원, 정리수납정돈가, 고객관리사무원, 관광통역안내원, 교통량조사원, 기록관리사, 기술영업원, 기획 및 홍보사무원, 무역사무원, 문화재보존원, 배차사무원, 번역가, 법률 및 세무 회계자문가, 법무사무원, 분양 및 임대사무원, 사무보조원, 사서 및 기록물 관리사, 설문조사원, 영업관리 사무원, 채권추심원, 해외영업원"}
+};
+const PAIR_NOTE = {
+  RI:"손으로 만들고 원리를 파고드는 '기술 전문가' 타입", RA:"손재주로 아름다움을 만드는 '공예가' 타입", RS:"몸으로 돕는 '현장 서비스' 타입", RE:"현장을 이끄는 '현장 관리자' 타입", RC:"정확한 절차로 일하는 '기술 관리' 타입",
+  IA:"새 아이디어를 연구하는 '창의적 연구자' 타입", IS:"지식으로 사람을 돕는 '전문 상담·의료' 타입", IE:"분석으로 전략을 세우는 '컨설턴트' 타입", IC:"자료를 정밀하게 분석하는 '데이터 분석가' 타입",
+  AS:"표현으로 사람과 소통하는 '교육·치유 예술가' 타입", AE:"아이디어를 사업으로 만드는 '크리에이터' 타입", AC:"감각과 꼼꼼함을 겸비한 '디자인 실무자' 타입",
+  SE:"사람을 이끌고 돕는 '리더·코치' 타입", SC:"성실하게 사람을 돕는 '행정 서비스' 타입", EC:"조직과 자금을 관리하는 '경영 관리자' 타입"
+};
+const KEY = "interest-test-v1";
+
+/* ───────── 상태 ───────── */
+let state = { name:"", ans:{}, page:0, done:false };
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+function load(){ try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.ans) state = s; }catch(e){} }
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const answered = () => Object.keys(state.ans).length;
+const scoreOf = t => TYPES[t].words.reduce((s,_,i)=> s + (state.ans[t+i]||0), 0);
+
+/* ───────── 테마 ───────── */
+function setTheme(t){
+  if(t) document.documentElement.setAttribute("data-theme", t);
+  const dark = document.documentElement.getAttribute("data-theme")==="dark" ||
+    (!document.documentElement.getAttribute("data-theme") && matchMedia("(prefers-color-scheme: dark)").matches);
+  $("themeBtn").textContent = dark ? "☀️ 밝게" : "🌙 어둡게";
+  return dark;
+}
+$("themeBtn").onclick = () => {
+  const dark = setTheme();
+  const next = dark ? "light" : "dark";
+  setTheme(next);
+  try{ localStorage.setItem(KEY+"-theme", next); }catch(e){}
+};
+try{ const t = localStorage.getItem(KEY+"-theme"); if(t) setTheme(t); }catch(e){}
+setTheme();
+
+/* ───────── 화면 전환 ───────── */
+function show(id){
+  ["intro","test","result"].forEach(s => $(s).classList.toggle("hidden", s!==id));
+  window.scrollTo({top:0});
+}
+
+/* ───────── 소개 ───────── */
+$("hexmini").innerHTML = ORDER.map(t => `<span style="background:var(--${t})">${t}<small>${TYPES[t].ko}</small></span>`).join("");
+load();
+$("name").value = state.name || "";
+if(answered() > 0 && !state.done){ $("resumeBtn").classList.remove("hidden"); $("resumeBtn").textContent = `이어서 하기 (${answered()}/60)`; }
+if(state.done){ $("resumeBtn").classList.remove("hidden"); $("resumeBtn").textContent = "지난 결과 보기"; }
+$("startBtn").onclick = () => { state = { name:$("name").value.trim(), ans:{}, page:0, done:false }; save(); renderPage(); show("test"); };
+$("resumeBtn").onclick = () => { state.name = $("name").value.trim() || state.name; if(state.done){ renderResult(); show("result"); } else { renderPage(); show("test"); } };
+
+/* ───────── 진단지 ───────── */
+function renderPage(){
+  const t = ORDER[state.page];
+  $("sheetTitle").textContent = `영역 ${state.page+1}`;
+  $("sheetNo").textContent = `${state.page*10+1} ~ ${state.page*10+10}번`;
+  $("qs").innerHTML = TYPES[t].words.map((w,i) => {
+    const k = t+i, v = state.ans[k]||0;
+    return `<li class="q" data-k="${k}">
+      <span class="n">${state.page*10+i+1}</span>
+      <span class="w">${esc(w)}</span>
+      <span class="seg" role="group" aria-label="${esc(w)}">
+        ${[1,2,3].map(n => `<button type="button" data-v="${n}" aria-pressed="${v===n}"><b>${n}</b>${["싫다","보통","좋다"][n-1]}</button>`).join("")}
+      </span></li>`;
+  }).join("");
+  $("prevBtn").textContent = state.page===0 ? "← 처음으로" : "← 이전";
+  $("nextBtn").textContent = state.page===5 ? "결과 보기 ✓" : "다음 →";
+  updateMeta();
+}
+function updateMeta(){
+  const t = ORDER[state.page];
+  const n = answered();
+  $("prog").style.width = (n/60*100)+"%";
+  $("pageLbl").textContent = `영역 ${state.page+1} / 6`;
+  $("cntLbl").textContent = `${n} / 60 응답`;
+  $("subtotal").textContent = scoreOf(t)+"점";
+}
+$("qs").addEventListener("click", e => {
+  const b = e.target.closest("button[data-v]"); if(!b) return;
+  const li = b.closest(".q"), k = li.dataset.k;
+  state.ans[k] = +b.dataset.v;
+  li.classList.remove("miss");
+  li.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x===b));
+  save(); updateMeta();
+});
+$("prevBtn").onclick = () => {
+  if(state.page===0){ show("intro"); $("resumeBtn").classList.remove("hidden"); $("resumeBtn").textContent=`이어서 하기 (${answered()}/60)`; return; }
+  state.page--; save(); renderPage(); window.scrollTo({top:0});
+};
+$("nextBtn").onclick = () => {
+  const t = ORDER[state.page];
+  const miss = [...$("qs").children].filter(li => !state.ans[li.dataset.k]);
+  if(miss.length){
+    miss.forEach(li => { li.classList.remove("miss"); void li.offsetWidth; li.classList.add("miss"); });
+    miss[0].scrollIntoView({behavior:"smooth", block:"center"});
+    return;
+  }
+  if(state.page<5){ state.page++; save(); renderPage(); window.scrollTo({top:0}); }
+  else { state.done = true; state.date = new Date().toISOString(); save(); renderResult(); show("result"); }
+};
+
+/* ───────── 육각형 차트 ───────── */
+function hexSVG(sc){
+  const W=440, H=420, cx=220, cy=212, R=140, MAX=30;
+  const ang = i => (-90 + i*60) * Math.PI/180;   // R 위, 시계방향 I A S E C
+  const pt = (i,r) => [cx + r*Math.cos(ang(i)), cy + r*Math.sin(ang(i))];
+  const poly = r => ORDER.map((_,i)=>pt(i,r).map(v=>v.toFixed(1)).join(",")).join(" ");
+  let g = "";
+  [10,20,30].forEach(l => {
+    g += `<polygon points="${poly(R*l/MAX)}" fill="${l===30?'var(--soft-2)':'none'}" stroke="var(--line)" stroke-width="${l===30?2:1.2}"/>`;
+    g += `<text x="${(cx + R*l/MAX*0.5 + 4).toFixed(1)}" y="${(cy - R*l/MAX*0.866 + 2).toFixed(1)}" font-size="10" fill="var(--muted)">${l}</text>`;
+  });
+  ORDER.forEach((_,i)=>{ const [x,y]=pt(i,R); g += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`; });
+  // 축 의미
+  g += `<g font-size="11" font-weight="700" fill="var(--muted)" text-anchor="middle" opacity=".85">
+    <text x="${cx}" y="${cy-R*0.45}">사물</text><text x="${cx}" y="${cy+R*0.5}">사람</text>
+    <text x="${cx+R*0.52}" y="${cy+4}">아이디어</text><text x="${cx-R*0.52}" y="${cy+4}">자료</text></g>`;
+  const pts = ORDER.map((t,i)=>pt(i, R*sc[t]/MAX));
+  g += `<polygon points="${pts.map(p=>p.map(v=>v.toFixed(1)).join(",")).join(" ")}" fill="var(--brand)" fill-opacity=".28" stroke="var(--brand)" stroke-width="3" stroke-linejoin="round">
+        <animate attributeName="fill-opacity" from="0" to=".28" dur=".6s"/></polygon>`;
+  pts.forEach((p,i)=>{ g += `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="5" fill="var(--${ORDER[i]})" stroke="var(--card)" stroke-width="2"/>`; });
+  ORDER.forEach((t,i)=>{
+    const [x,y] = pt(i, R+40);
+    g += `<g><circle cx="${x.toFixed(1)}" cy="${(y-6).toFixed(1)}" r="17" fill="var(--${t})"/>
+      <text x="${x.toFixed(1)}" y="${(y-1).toFixed(1)}" text-anchor="middle" font-size="15" font-weight="900" fill="#fff">${t}</text>
+      <text x="${x.toFixed(1)}" y="${(y+27).toFixed(1)}" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--ink)">${TYPES[t].ko} ${sc[t]}</text></g>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="흥미 육각형: ${ORDER.map(t=>TYPES[t].ko+' '+sc[t]+'점').join(', ')}">${g}</svg>`;
+}
+
+/* ───────── 결과 ───────── */
+function typeCard(t, sc, rankLbl){
+  const d = TYPES[t];
+  return `<div class="type-card" style="--c:var(--${t})">
+    <div class="th">
+      <div class="ic">${t}</div>
+      <div><div class="nm">${d.ko} <small>(${d.en})</small></div><div class="sub">${d.sub}${rankLbl?` · <b>${rankLbl}</b>`:""}</div></div>
+      <div class="sc">${sc}<small>/ 30점</small></div>
+    </div>
+    <div class="tb">
+      <p class="desc">${d.who}</p>
+      <div class="two">
+        <div>
+          <div class="lbl" style="margin-top:0">주요 특징</div>
+          <ul class="feat">${d.feat.map(f=>`<li>${f}</li>`).join("")}</ul>
+          <div class="lbl">나를 나타내는 말</div>
+          <div class="tags">${d.words.map(w=>`<span>${w}</span>`).join("")}</div>
+        </div>
+        <div>
+          <div class="lbl" style="margin-top:0">유형 프로필</div>
+          <table class="prof">${Object.entries(d.prof).map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join("")}</table>
+        </div>
+      </div>
+      <div class="lbl">좋아하는 활동</div>
+      <div>${d.act}</div>
+      <div class="lbl">대표 직업</div>
+      <div class="tags strong">${d.jobs.map(j=>`<span>${j}</span>`).join("")}</div>
+      <div class="lbl">창업 · 부업 · 일자리</div>
+      <div class="tags">${d.side.map(j=>`<span>${j}</span>`).join("")}</div>
+      <details class="more"><summary>추천 일자리 더 보기 (${d.more.split(/,\s*/).length}개)</summary>
+        <div class="tags">${d.more.split(/,\s*/).map(j=>`<span>${j}</span>`).join("")}</div>
+      </details>
+    </div>
+  </div>`;
+}
+
+function renderResult(){
+  const sc = {}; ORDER.forEach(t => sc[t] = scoreOf(t));
+  const ranked = [...ORDER].sort((a,b)=> sc[b]-sc[a]);
+  const top1 = ranked[0], top2 = ranked[1];
+  const rankOf = t => 1 + ORDER.filter(x => sc[x] > sc[t]).length;
+  const d = state.date ? new Date(state.date) : new Date();
+  $("resMeta").textContent = `${state.name ? state.name+" 님 · " : ""}${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()} 검사`;
+
+  $("codeBox").innerHTML = `<span class="ltr" style="background:var(--${top1})">${top1}</span><span class="plus">+</span><span class="ltr" style="background:var(--${top2})">${top2}</span>`;
+
+  const pairKey = ORDER.filter(t=>t===top1||t===top2).join("");
+  const spread = sc[ranked[0]] - sc[ranked[5]];
+  $("hero").innerHTML = `<div class="k">${state.name ? esc(state.name)+" 님의 " : "나의 "}흥미코드</div>
+    <div class="big">${top1}${top2} · ${TYPES[top1].ko} + ${TYPES[top2].ko}</div>
+    <p>${PAIR_NOTE[pairKey] || ""}. ${TYPES[top1].who}에 가장 가깝고, ${TYPES[top2].ko}의 성향도 함께 지니고 있어요.</p>`;
+
+  $("hex").innerHTML = hexSVG(sc);
+  $("bars").innerHTML = ranked.map(t => `<div class="r">
+      <span class="t" style="color:var(--${t})">${t} ${TYPES[t].ko}</span>
+      <span class="tr"><i style="width:${sc[t]/30*100}%;background:var(--${t})"></i></span>
+      <span class="v">${sc[t]}${rankOf(t)<=2?`<span class="rank">${rankOf(t)}</span>`:""}</span></div>`).join("");
+
+  $("topCards").innerHTML = typeCard(top1, sc[top1], "1순위") + typeCard(top2, sc[top2], "2순위");
+
+  // 탭
+  let cur = top1;
+  const drawTabs = () => {
+    $("tabs").innerHTML = ORDER.map(t => `<button type="button" role="tab" style="--c:var(--${t})" aria-selected="${t===cur}" data-t="${t}">${t} ${TYPES[t].ko}</button>`).join("");
+    $("tabBody").innerHTML = typeCard(cur, sc[cur], `${rankOf(cur)}순위`);
+  };
+  $("tabs").onclick = e => { const b = e.target.closest("button[data-t]"); if(!b) return; cur = b.dataset.t; drawTabs(); };
+  drawTabs();
+
+  // 해석 안내
+  const ties = ORDER.filter(t => t!==top1 && sc[t]===sc[top2]);
+  let msg = "";
+  if(spread <= 4) msg += "<b>육각형이 비교적 고른 모양</b>이에요. 흥미가 뚜렷하게 나뉘지 않았으니 여러 유형의 일을 직접 경험해 보며 좋아하는 일을 찾아보세요. ";
+  else if(spread >= 12) msg += "<b>육각형이 한쪽으로 뚜렷하게 뻗어 있어요.</b> 좋아하는 분야가 분명한 편이니 상위 유형 직업을 중심으로 탐색해 보세요. ";
+  else msg += "<b>상위 유형이 어느 정도 드러나는 모양</b>이에요. 1·2순위 유형의 직업을 먼저 살펴보고, 3순위 유형도 함께 참고해 보세요. ";
+  if(ties.length) msg += `2순위 점수가 같은 유형(${ties.map(t=>TYPES[t].ko).join(", ")})이 있으니 그 유형도 함께 살펴보세요. `;
+  msg += "육각형에서 서로 이웃한 유형(예: R–I, S–E)은 성격이 비슷하고, 마주 보는 유형(R–S, I–E, A–C)은 성격이 반대에 가깝습니다.";
+  $("interpret").innerHTML = msg;
+}
+/* ───────── 결과 이미지 저장 ───────── */
+const IMG = { bg:"#eef6f0", card:"#ffffff", ink:"#1b2b22", muted:"#5b6f63", line:"#d3e5d9", soft:"#e2f3e8", brand:"#1f8a4c", brandD:"#156b3a",
+  R:"#2f7fd0", I:"#4c9a2a", A:"#e0a019", S:"#d4473b", E:"#7b4bb0", C:"#2b9aa0" };
+const FONT = (w,s) => `${w} ${s}px "Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif`;
+let PAINT = true;
+function rr(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function lines(ctx,text,maxW){
+  const out=[]; let cur="";
+  for(const word of String(text).split(" ")){
+    const t = cur ? cur+" "+word : word;
+    if(ctx.measureText(t).width <= maxW){ cur=t; continue; }
+    if(cur) out.push(cur);
+    cur="";
+    for(const ch of word){ if(ctx.measureText(cur+ch).width > maxW && cur){ out.push(cur); cur=ch; } else cur+=ch; }
+  }
+  if(cur) out.push(cur);
+  return out;
+}
+function text(ctx,t,x,y,maxW,lh,font,color){
+  ctx.font=font; ctx.fillStyle=color; ctx.textBaseline="top";
+  for(const l of lines(ctx,t,maxW)){ if(PAINT) ctx.fillText(l,x,y); y+=lh; }
+  return y;
+}
+function pills(ctx,arr,x,y,maxW,bg,fg,bold){
+  ctx.font=FONT(bold?700:500,20); ctx.textBaseline="middle";
+  const h=40, pad=16, gap=8; let cx=x;
+  for(const a of arr){
+    const w=Math.min(ctx.measureText(a).width+pad*2, maxW);
+    if(cx+w > x+maxW){ cx=x; y+=h+gap; }
+    if(PAINT){ rr(ctx,cx,y,w,h,20); ctx.fillStyle=bg; ctx.fill(); ctx.fillStyle=fg; ctx.fillText(a,cx+pad,y+h/2+1); }
+    cx+=w+gap;
+  }
+  return y+h;
+}
+function typeBlock(ctx,t,score,rank,x,y,w){
+  const d=TYPES[t], c=IMG[t], inner=w-64; let yy=y+32;
+  if(PAINT){ ctx.fillStyle=c; ctx.beginPath(); ctx.arc(x+32+30,yy+30,30,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle="#fff"; ctx.font=FONT(900,30); ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(t,x+62,yy+31); ctx.textAlign="left"; }
+  text(ctx,`${d.ko} (${d.en})`,x+112,yy+2,inner-200,36,FONT(900,30),c);
+  text(ctx,`${rank} · ${d.sub}`,x+112,yy+40,inner-200,26,FONT(500,18),IMG.muted);
+  if(PAINT){ ctx.font=FONT(900,34); ctx.fillStyle=c; ctx.textAlign="right"; ctx.textBaseline="top"; ctx.fillText(score+"점",x+w-32,yy+4);
+    ctx.font=FONT(500,16); ctx.fillStyle=IMG.muted; ctx.fillText("/ 30점",x+w-32,yy+44); ctx.textAlign="left"; }
+  yy+=88;
+  yy=text(ctx,d.who,x+32,yy,inner,32,FONT(500,21),IMG.ink)+14;
+  yy=text(ctx,"주요 특징",x+32,yy,inner,30,FONT(700,19),c);
+  for(const f of d.feat){ text(ctx,"✔",x+32,yy,30,30,FONT(900,19),c); yy=text(ctx,f,x+60,yy,inner-28,30,FONT(500,20),IMG.ink); }
+  yy+=12;
+  yy=text(ctx,"유형 프로필",x+32,yy,inner,30,FONT(700,19),c)+2;
+  for(const [k,v] of Object.entries(d.prof)){ text(ctx,k,x+32,yy,110,28,FONT(700,18),IMG.muted); yy=text(ctx,v,x+150,yy,inner-118,28,FONT(500,19),IMG.ink)+2; }
+  yy+=12;
+  yy=text(ctx,"대표 직업",x+32,yy,inner,30,FONT(700,19),c)+4;
+  yy=pills(ctx,d.jobs,x+32,yy,inner,c,"#fff",true)+16;
+  yy=text(ctx,"창업 · 부업 · 일자리",x+32,yy,inner,30,FONT(700,19),c)+4;
+  yy=pills(ctx,d.side,x+32,yy,inner,IMG.soft,IMG.ink,false);
+  return yy+32;
+}
+function drawResult(ctx,sc,ranked){
+  const W=1080, P=48, top1=ranked[0], top2=ranked[1];
+  if(PAINT){ ctx.fillStyle=IMG.bg; ctx.fillRect(0,0,W,ctx.canvas.height); }
+  let y=P;
+  // 머리 띠
+  ctx.font=FONT(500,22);
+  const pairKey=ORDER.filter(t=>t===top1||t===top2).join("");
+  const note=(PAIR_NOTE[pairKey]||"")+". "+TYPES[top1].who+"에 가장 가깝고, "+TYPES[top2].ko+"의 성향도 함께 지니고 있어요.";
+  const nl=lines(ctx,note,W-2*P-64).length;
+  const hh=210+nl*34;
+  if(PAINT){ const g=ctx.createLinearGradient(P,y,W-P,y+hh); g.addColorStop(0,IMG.brand); g.addColorStop(1,IMG.brandD); rr(ctx,P,y,W-2*P,hh,28); ctx.fillStyle=g; ctx.fill(); }
+  const d=state.date?new Date(state.date):new Date();
+  text(ctx,"직업선호도 간편검사 결과지",P+32,y+30,600,30,FONT(700,22),"#ffffff");
+  text(ctx,`${state.name?state.name+" 님 · ":""}${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()} 검사`,P+32,y+62,600,28,FONT(500,19),"#d8f0e0");
+  text(ctx,`${top1}${top2} · ${TYPES[top1].ko} + ${TYPES[top2].ko}`,P+32,y+104,W-2*P-260,60,FONT(900,46),"#ffffff");
+  text(ctx,note,P+32,y+180,W-2*P-64,34,FONT(500,22),"#ffffff");
+  if(PAINT){ [top1,top2].forEach((t,i)=>{ const cx=W-P-200+i*110, cy=y+70; ctx.fillStyle="#ffffff"; ctx.beginPath(); ctx.arc(cx,cy,44,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=IMG[t]; ctx.beginPath(); ctx.arc(cx,cy,40,0,Math.PI*2); ctx.fill(); ctx.fillStyle="#fff"; ctx.font=FONT(900,40); ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(t,cx,cy+2); ctx.textAlign="left"; }); }
+  y+=hh+24;
+  // 육각형 + 점수
+  const ch=560;
+  if(PAINT){ rr(ctx,P,y,W-2*P,ch,24); ctx.fillStyle=IMG.card; ctx.fill(); ctx.strokeStyle=IMG.line; ctx.lineWidth=2; ctx.stroke(); }
+  text(ctx,"나의 흥미 육각형",P+32,y+28,400,34,FONT(900,26),IMG.ink);
+  if(PAINT){
+    const cx=P+280, cy=y+310, R=170, ang=i=>(-90+i*60)*Math.PI/180, pt=(i,r)=>[cx+r*Math.cos(ang(i)),cy+r*Math.sin(ang(i))];
+    const hex=(r)=>{ ctx.beginPath(); ORDER.forEach((_,i)=>{ const [px,py]=pt(i,r); i?ctx.lineTo(px,py):ctx.moveTo(px,py); }); ctx.closePath(); };
+    hex(R); ctx.fillStyle="#f5fbf7"; ctx.fill();
+    [10,20,30].forEach(l=>{ hex(R*l/30); ctx.strokeStyle=IMG.line; ctx.lineWidth=l===30?2.5:1.5; ctx.stroke();
+      ctx.fillStyle=IMG.muted; ctx.font=FONT(500,14); ctx.textBaseline="top"; ctx.fillText(String(l),cx+R*l/30*0.5+6,cy-R*l/30*0.866-2); });
+    ORDER.forEach((_,i)=>{ const [px,py]=pt(i,R); ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(px,py); ctx.strokeStyle=IMG.line; ctx.lineWidth=1.2; ctx.stroke(); });
+    ctx.font=FONT(700,15); ctx.fillStyle=IMG.muted; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillText("사물",cx,cy-R*.45); ctx.fillText("사람",cx,cy+R*.5); ctx.fillText("아이디어",cx+R*.55,cy); ctx.fillText("자료",cx-R*.55,cy);
+    ctx.beginPath(); ORDER.forEach((t,i)=>{ const [px,py]=pt(i,R*sc[t]/30); i?ctx.lineTo(px,py):ctx.moveTo(px,py); }); ctx.closePath();
+    ctx.fillStyle="rgba(31,138,76,.28)"; ctx.fill(); ctx.strokeStyle=IMG.brand; ctx.lineWidth=4; ctx.lineJoin="round"; ctx.stroke();
+    ORDER.forEach((t,i)=>{ const [px,py]=pt(i,R*sc[t]/30); ctx.beginPath(); ctx.arc(px,py,7,0,Math.PI*2); ctx.fillStyle=IMG[t]; ctx.fill(); ctx.strokeStyle="#fff"; ctx.lineWidth=2.5; ctx.stroke(); });
+    ORDER.forEach((t,i)=>{ const [px,py]=pt(i,R+52); ctx.beginPath(); ctx.arc(px,py-10,21,0,Math.PI*2); ctx.fillStyle=IMG[t]; ctx.fill();
+      ctx.fillStyle="#fff"; ctx.font=FONT(900,20); ctx.fillText(t,px,py-9); ctx.fillStyle=IMG.ink; ctx.font=FONT(700,16); ctx.fillText(`${TYPES[t].ko} ${sc[t]}`,px,py+26); });
+    ctx.textAlign="left";
+    // 막대
+    const bx=P+590, bw=W-P-32-bx; let by=y+150;
+    const rankOf=t=>1+ORDER.filter(x=>sc[x]>sc[t]).length;
+    ranked.forEach(t=>{
+      ctx.font=FONT(700,19); ctx.fillStyle=IMG[t]; ctx.textBaseline="middle"; ctx.fillText(`${t} ${TYPES[t].ko}`,bx,by);
+      ctx.textAlign="right"; ctx.fillStyle=IMG.ink; ctx.font=FONT(900,20); ctx.fillText(`${sc[t]}점${rankOf(t)<=2?` (${rankOf(t)}위)`:""}`,bx+bw,by); ctx.textAlign="left";
+      rr(ctx,bx,by+18,bw,12,6); ctx.fillStyle=IMG.line; ctx.fill();
+      rr(ctx,bx,by+18,Math.max(12,bw*sc[t]/30),12,6); ctx.fillStyle=IMG[t]; ctx.fill();
+      by+=58;
+    });
+  }
+  y+=ch+24;
+  // 대표 유형 카드
+  [[top1,"1순위"],[top2,"2순위"]].forEach(([t,rk])=>{
+    const was=PAINT; PAINT=false; const h=typeBlock(ctx,t,sc[t],rk,P,y,W-2*P)-y; PAINT=was;
+    if(PAINT){ rr(ctx,P,y,W-2*P,h,24); ctx.fillStyle=IMG.card; ctx.fill(); ctx.strokeStyle=IMG.line; ctx.lineWidth=2; ctx.stroke();
+      ctx.save(); rr(ctx,P,y,W-2*P,h,24); ctx.clip(); ctx.fillStyle=IMG[t]; ctx.fillRect(P,y,W-2*P,8); ctx.restore(); }
+    typeBlock(ctx,t,sc[t],rk,P,y,W-2*P);
+    y+=h+24;
+  });
+  ctx.textAlign="center";
+  y=text(ctx,"홀랜드 직업흥미이론(RIASEC)을 바탕으로 한 간편검사입니다. 결과는 참고용입니다.",W/2,y+4,W,28,FONT(500,17),IMG.muted);
+  ctx.textAlign="left";
+  return y+P-20;
+}
+async function buildResultCanvas(){
+  try{ await document.fonts.load(FONT(900,20)); await document.fonts.load(FONT(500,20)); await document.fonts.load(FONT(700,20)); }catch(e){}
+  const sc={}; ORDER.forEach(t=>sc[t]=scoreOf(t));
+  const ranked=[...ORDER].sort((a,b)=>sc[b]-sc[a]);
+  const m=document.createElement("canvas"); m.width=1080; m.height=10;
+  PAINT=false; const H=Math.ceil(drawResult(m.getContext("2d"),sc,ranked)); PAINT=true;
+  const cv=document.createElement("canvas"); cv.width=1080; cv.height=H;
+  drawResult(cv.getContext("2d"),sc,ranked);
+  return cv;
+}
+// 결과 이미지를 한 장짜리 PDF(A4 너비)로 감싸기: JPEG를 그대로 넣는 최소 PDF
+function canvasToPDF(cv){
+  return new Promise((resolve,reject)=>cv.toBlob(async b=>{
+    try{
+      const jpg=new Uint8Array(await b.arrayBuffer());
+      const PW=595.28, PH=+(PW*cv.height/cv.width).toFixed(2);
+      const enc=new TextEncoder(), parts=[], offs=[]; let len=0;
+      const put=x=>{ const u=typeof x==="string"?enc.encode(x):x; parts.push(u); len+=u.length; };
+      const obj=(n,body)=>{ offs[n]=len; put(`${n} 0 obj\n`); (Array.isArray(body)?body:[body]).forEach(put); put("\nendobj\n"); };
+      put("%PDF-1.4\n"); put(new Uint8Array([0x25,0xE2,0xE3,0xCF,0xD3,0x0A]));
+      obj(1,"<< /Type /Catalog /Pages 2 0 R >>");
+      obj(2,"<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
+      obj(3,`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`);
+      obj(4,[`<< /Type /XObject /Subtype /Image /Width ${cv.width} /Height ${cv.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpg.length} >>\nstream\n`,jpg,"\nendstream"]);
+      const cs=`q ${PW} 0 0 ${PH} 0 0 cm /Im0 Do Q`;
+      obj(5,`<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`);
+      const x=len;
+      put("xref\n0 6\n0000000000 65535 f \n"+[1,2,3,4,5].map(n=>String(offs[n]).padStart(10,"0")+" 00000 n \n").join(""));
+      put(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${x}\n%%EOF\n`);
+      resolve(new Blob(parts,{type:"application/pdf"}));
+    }catch(e){ reject(e); }
+  },"image/jpeg",0.92));
+}
+const downloadsP = (window.claude && typeof window.claude.use==="function") ? window.claude.use("downloads").catch(()=>null) : Promise.resolve(null);
+async function saveResult(kind){
+  const btn=$(kind==="pdf"?"pdfBtn":"saveBtn"), msg=$("saveMsg");
+  $("pdfBtn").disabled=$("saveBtn").disabled=true; const label=btn.textContent; btn.textContent=kind==="pdf"?"PDF 만드는 중…":"이미지 만드는 중…"; msg.textContent="";
+  try{
+    const cv=await buildResultCanvas();
+    const blob = kind==="pdf" ? await canvasToPDF(cv) : await new Promise(r=>cv.toBlob(r,"image/png"));
+    const d=state.date?new Date(state.date):new Date();
+    const ymd=`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`;
+    const filename=`직업흥미검사_결과${state.name?"_"+state.name.replace(/[\\/:*?"<>|]/g,""):""}_${ymd}.${kind}`;
+    const what = kind==="pdf" ? "결과 PDF" : "결과 이미지";
+    const dl = window.claude ? await downloadsP : null;
+    if(dl){
+      try{ await dl.save({filename,data:blob}); msg.textContent=`${what}를 저장했어요.`; }
+      catch(e){ msg.textContent = e && e.code==="declined" ? "저장을 취소했어요." : e && e.code==="rate_limited" ? "저장 창이 이미 열려 있어요. 잠시 뒤 다시 눌러 주세요." : "이 화면에서는 파일을 저장할 수 없어요. 결과 화면을 캡처해 보관해 주세요."; }
+    } else if(window.claude){
+      msg.textContent="이 화면에서는 파일을 저장할 수 없어요. 결과 화면을 캡처해 보관해 주세요.";
+    } else {
+      const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; document.body.appendChild(a); a.click();
+      setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1500);
+      msg.textContent=`${what}를 저장했어요.`;
+    }
+  }catch(e){ msg.textContent="파일을 만들지 못했어요. 다시 눌러 주세요."; }
+  $("pdfBtn").disabled=$("saveBtn").disabled=false; btn.textContent=label;
+}
+$("pdfBtn").onclick = () => saveResult("pdf");
+$("saveBtn").onclick = () => saveResult("png");
+$("editBtn").onclick = () => { state.done=false; state.page=0; save(); renderPage(); show("test"); };
+$("retryBtn").onclick = () => { $("confirmBox").hidden = false; };
+$("noBtn").onclick = () => { $("confirmBox").hidden = true; };
+$("yesBtn").onclick = () => { $("confirmBox").hidden = true; state = { name:state.name, ans:{}, page:0, done:false }; save(); $("resumeBtn").classList.add("hidden"); show("intro"); };
+</script>
